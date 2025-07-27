@@ -1,8 +1,8 @@
-package com.mobility.authservice.exceptions;
+package com.mobility.authservice.exceptions.exception_handlers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mobility.authservice.dto.ApiResponse;
-import feign.FeignException;
+import com.mobility.authservice.exceptions.CustomExceptionService;
+
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,13 +43,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
-    @ExceptionHandler(FeignException.class)
-    public ResponseEntity<ApiResponse<String>> handleFeignException(FeignException ex) {
-        String message = extractErrorMessage(ex.contentUTF8());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ApiResponse<>("error", message, null, Instant.now()));
-    }
-
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiResponse<String>> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -86,15 +79,4 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse<>("error", "Something went wrong: " + ex.getMessage(), null, Instant.now()));
     }
 
-    private String extractErrorMessage(String json) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            System.out.println(json);
-            ApiResponse<?> error = mapper.readValue(json, ApiResponse.class);
-            System.out.println(error);
-            return error.getMessage();
-        } catch (Exception e) {
-            return "Unknown error from downstream service";
-        }
-    }
 }
